@@ -1,4 +1,4 @@
-# simple boot loader
+# simple boot loader (in process)
 Written for i386 architecture.
 Uses dos interupts.
 Assumed img foramt is - raw.
