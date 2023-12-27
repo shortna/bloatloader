@@ -1,7 +1,7 @@
 # simple boot loader
-written for i386 architecture
-uses dos interupts 
-assumed img foramt is - raw
+Written for i386 architecture.
+Uses dos interupts.
+Assumed img foramt is - raw.
 
 build:
 ```
