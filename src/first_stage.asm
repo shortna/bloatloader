@@ -8,6 +8,20 @@
 _start:
   clc           # clear CF (carry flag)
   xorw %ax, %ax # set ax to zero 
+
+###################################
+#  ESTABLISHING BOOT LOADER STACK #
+###################################
+# start address of stack is 0x0007FFFF
+# 0x7FFFF = (x * 0x10) + 0xFFFF
+# 0x7FFFF - 0xFFFF = x * 0x10
+# 0x70000 = x * 0x10
+# x = 0x70000 / 0x10
+# x = 0x7000
+  movw $0x7000, %ax
+  movw %ax, %SS
+  movw $0xFFFF, %sp
+
   movb $0x02, %ah # read sector
   movb $0x01, %al # number of sectors
 
