@@ -12,38 +12,50 @@ _start:
 ###################################
 #  ESTABLISHING BOOT LOADER STACK #
 ###################################
-# start address of stack is 0x0007FFFF
+# start adderrors of stack is 0x0007FFFF
 # 0x7FFFF = (x * 0x10) + 0xFFFF
 # 0x7FFFF - 0xFFFF = x * 0x10
 # 0x70000 = x * 0x10
 # x = 0x70000 / 0x10
 # x = 0x7000
+
   movw $0x7000, %ax
   movw %ax, %SS
-  movw $0xFFFF, %sp
+  movw %SS:0xFFFF, %sp
+
+###################################
+
+###################################
+#  ESTABLISHING BUFFER FOR data   #
+###################################
+
+  movw $0x7E00, %ax
+  movw %ax, %ES
+
+###################################
 
   movb $0x02, %ah # read sector
-  movb $0x01, %al # number of sectors
+  movb $0x04, %al # number of sectors
 
   movb $0x0, %ch # track/cylinder number
   movb $0x2, %cl # sector number (1-17 dec.)
   movb $0x0, %dh # head number (0-15 dec.)
 
-  movb $0x80, %dl   # use first drive
-  movw $0x7E00, %bx # start of 480.5K of usable memory (https://wiki.osdev.org/Memory_Map_(x86))
+  movb $0x80, %dl    # use first drive
+  movw %ES:0x0, %bx  # start of 480.5K of usable memory (https://wiki.osdev.org/Memory_Map_(x86))
   int $0x13
 
   cmp $0, %ah 
-  jne res # jump if ah != 0 which indicates an error
+  jne error # jump if ah != 0 which indicates an error
 
   cmp $0, %al
-  je res  # jump if nothing was read
+  je error  # jump if nothing was read
 
   jmp *%bx # jump to second stage
 
-res:
+error:
   movb %ah, %bl  # saves error code
-  movw $err, %si # move message address to si
+  movw $err, %si # move message addres to si
 
   # print message till \0
   message:
