@@ -2,7 +2,7 @@
 # avaliable code space is 510 bytes
 .code16
 
-.text
+.section .text
   .global _start
 
 _start:
@@ -25,33 +25,25 @@ _start:
 
 ###################################
 
-###################################
-#  ESTABLISHING BUFFER FOR data   #
-###################################
-
-  movw $0x7E00, %ax
-  movw %ax, %ES
-
-###################################
-
   movb $0x02, %ah # read sector
-  movb $0x04, %al # number of sectors
+  movb $0x01, %al # number of sectors
 
   movb $0x0, %ch # track/cylinder number
   movb $0x2, %cl # sector number (1-17 dec.)
   movb $0x0, %dh # head number (0-15 dec.)
 
   movb $0x80, %dl    # use first drive
-  movw %ES:0x0, %bx  # start of 480.5K of usable memory (https://wiki.osdev.org/Memory_Map_(x86))
+  movw $0x7E00, %bx  # 0x7E00 is start of 480.5K of usable memory (https://wiki.osdev.org/Memory_Map_(x86))
   int $0x13
 
   cmp $0, %ah 
-  jne error # jump if ah != 0 which indicates an error
+  jne error   # jump if ah != 0 which indicates an error
 
   cmp $0, %al
-  je error  # jump if nothing was read
+  je error    # jump if nothing was read
 
-  jmp *%bx # jump to second stage
+  jmp 0x7E00
+
 
 error:
   movb %ah, %bl  # saves error code
@@ -90,7 +82,6 @@ print_byte_in_hex:
 
   movb 4(%bp), %al
   andb $0xF, %al # remove higher 4 bits
-
 
   pushw %ax
   call half_bit_value_to_ascii

@@ -6,8 +6,8 @@ Assumed img foramt is - raw.
 build:
 ```
 make          # making binary
-make qemu-img # making raw img for qemu vm
-make qemu     # run vm with img 
+make image    # making raw image for qemu vm
+make qemu     # run vm with image 
 ```
 
 clean:

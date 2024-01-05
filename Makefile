@@ -1,33 +1,42 @@
 # in case shell inherited from environment
 SHELL = /bin/sh
 
-# clears out the suffix list 
-.SUFFIXES:
-
+# clears out the suffix list .SUFFIXES:
 # introduces all suffixes which may be subject to implicit rules in this Makefile.
 .SUFFIXES: .o .asm 
 
 SRC_DIR = src
+OBJ_DIR = objects
 TARGET_DIR = build
-TARGET = boot.bin
 
-all: $(TARGET_DIR) boot.o $(TARGET)
+OBJECTS = first_stage.o second_stage.o
+TARGET = bootloader
+
+QEMU_IMAGE = image
+
+all: $(TARGET_DIR) $(OBJ_DIR) $(OBJECTS) $(TARGET)
 
 $(TARGET_DIR):
 	mkdir $@
 
-boot.o: $(SRC_DIR)/*.asm
-	$(AS) $< -o $(TARGET_DIR)/$@ -g
+$(OBJ_DIR):
+	mkdir $@
 
-$(TARGET): $(TARGET_DIR)/boot.o
-	$(LD) $< --oformat=binary -Ttext=0x7C00 -o $(TARGET_DIR)/$@ -g
+$(OBJECTS): %.o: $(SRC_DIR)/%.asm
+	$(AS) -o $(OBJ_DIR)/$@ $< 
 
-qemu-img: 
-	qemu-img create -f raw image 64k; \
-	cat $(TARGET_DIR)/$(TARGET) > image
+$(TARGET): $(patsubst %,$(OBJ_DIR)/%,$(OBJECTS))
+	$(LD) -o $(TARGET_DIR)/$@ $^ --Ttext=0x7C00 --oformat=binary
 
-qemu:
-	qemu-system-i386 -nographic -drive file=image,format=raw
+$(QEMU_IMAGE):
+	qemu-img create -f raw $@ 64k; \
+		cat $(TARGET_DIR)/* > $@
+ 
+.PHONY: clean test qemu
+qemu: $(QEMU_IMAGE)
+	qemu-system-i386 -nographic -drive file=$<,format=raw
+
+test: clean all $(QEMU_IMAGE) qemu
 
 clean:
-	rm -r $(TARGET_DIR) image
+	$(RM) -r $(TARGET_DIR) $(OBJ_DIR) $(QEMU_IMAGE)
